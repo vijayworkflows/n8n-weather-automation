@@ -1,0 +1,185 @@
+{
+  "name": "02-Daily Weather Report",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9,
+              "triggerAtMinute": 30
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -576,
+        -96
+      ],
+      "id": "55917271-5f3c-4c67-9efc-eb5f3728066b",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://api.open-meteo.com/v1/forecast",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "latitude",
+              "value": "11.75"
+            },
+            {
+              "name": "longitude",
+              "value": "79.75"
+            },
+            {
+              "name": "current",
+              "value": "temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m"
+            },
+            {
+              "name": "daily",
+              "value": "temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,uv_index_max,sunrise,sunset"
+            },
+            {
+              "name": "forecast_days",
+              "value": "1"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -336,
+        -144
+      ],
+      "id": "65087f67-0a29-4d26-89fd-22bf8e1b840a",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8413fa7c-6cba-4325-8959-1ea51b171252",
+              "name": "=Location",
+              "value": "Cuddalore, Tamil Nadu",
+              "type": "string"
+            },
+            {
+              "id": "5ef8ea6d-03c9-4ce2-9373-d50d36d63247",
+              "name": "=Temperature",
+              "value": "={{ $json.current.temperature_2m }}",
+              "type": "number"
+            },
+            {
+              "id": "78a6b6d2-3f7f-4c45-a8cc-41ae7af3b451",
+              "name": "=Max Temp.",
+              "value": "={{ $node[\"HTTP Request\"].json.daily.temperature_2m_max[0] }}",
+              "type": "number"
+            },
+            {
+              "id": "5068dc0c-fb92-4b58-880a-814c133e8310",
+              "name": "=Min Temp.",
+              "value": "={{ $node[\"HTTP Request\"].json.daily.temperature_2m_min[0] }}",
+              "type": "number"
+            },
+            {
+              "id": "11457298-0a7c-497e-9388-b02c3ca4c7c7",
+              "name": "=Rain Chance",
+              "value": "={{ $json.daily.precipitation_probability_max[0] }}",
+              "type": "number"
+            },
+            {
+              "id": "1c837949-eace-43f5-9fcf-6613cae84b35",
+              "name": "=Wind Speed",
+              "value": "={{ $json.current.wind_speed_10m }}",
+              "type": "number"
+            },
+            {
+              "id": "15b9fbea-ac4c-44ab-8bb2-593d266e9b21",
+              "name": "=Humidity",
+              "value": "={{ $json.current.relative_humidity_2m }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -112,
+        -144
+      ],
+      "id": "2b5703dd-4ff1-4708-863f-870ddb5570bd",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "sendTo": "youremail@email.com",
+        "subject": "Your daily weather report",
+        "message": "=<h2>Good Morning! 🌤️</h2>\n\n<h3>Daily Weather Report – {{ $json[\"Location\"] }}</h3>\n\n<p><b>Temperature:</b> {{ $json[\"Temperature\"] }}°C</p>\n\n<p><b>Humidity:</b> {{ $json[\"Humidity\"] }}%</p>\n\n<p><b>Wind Speed:</b> {{ $json[\"Wind Speed\"] }} km/h</p>\n\n<hr>\n\n<h3>Today's Forecast</h3>\n\n<p><b>Maximum Temperature:</b> {{ $node[\"HTTP Request\"].json.daily.temperature_2m_max[0] }}°C</p>\n\n<p><b>Minimum Temperature:</b> {{ $node[\"HTTP Request\"].json.daily.temperature_2m_min[0] }}°C</p>\n\n<p><b>Rain Probability:</b> {{ $json[\"Rain Chance\"] }}%</p>\n<hr>\n\n<p>Have a great day!</p>\n<p><small>Weather data powered by Open-Meteo.</small></p>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        112,
+        -144
+      ],
+      "id": "9dba2636-4415-418b-9253-4e459f920a62",
+      "name": "Send a message"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "8205bbb4-132a-4c53-87b5-cc600b0a7c7e"
+  },
+  "nodeGroups": [],
+  "id": "MjYcQ2XIpnrIMiMG",
+  "tags": []
+}
