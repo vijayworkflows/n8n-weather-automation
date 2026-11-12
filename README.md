@@ -6,6 +6,12 @@
 
 # \## Overview
 
+## Workflow Overview
+
+The following screenshot shows the complete n8n automation workflow.
+
+![Daily Weather Report Workflow](screenshots/workflow-overview.png)
+
 
 # This workflow retrieves daily weather information for Cuddalore, Tamil Nadu, processes the weather data, and sends a formatted email report automatically.
 
